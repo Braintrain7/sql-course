@@ -12,14 +12,14 @@ We use a small table, PatientStay, in these examples.
 */
 
 SELECT
-    ps.PatientId
+	ps.PatientId
 	, ps.AdmittedDate
 	, ps.Hospital
 	, ps.Ward
 	, ps.Ethnicity
 	, ps.Tariff
 FROM
-    dbo.PatientStay ps;
+	dbo.PatientStay ps;
 
 /*
  * Write a SQL query to show the number of patients admitted each day
@@ -36,10 +36,10 @@ How many patients were admittted each month?
 */
 --Returns the month as the name of the month
 SELECT
-    DATENAME(MONTH,ps.AdmittedDate) AS AdmittedMonth
+	DATENAME(MONTH,ps.AdmittedDate) AS AdmittedMonth
 	, COUNT(*) AS [Number Of Patients]
 FROM
-    dbo.PatientStay ps
+	dbo.PatientStay ps
 GROUP BY
 	DATENAME(MONTH,ps.AdmittedDate);
 
@@ -50,7 +50,7 @@ COUNT(*) counts over a window defined by OVER() - the whole of the table since w
 */
 ---Adding the OVER avoids using a GROUP BY
 SELECT
-    ps.PatientId
+	ps.PatientId
 	, ps.Hospital
 	, ps.Ward
 	, ps.AdmittedDate
@@ -58,7 +58,7 @@ SELECT
 	, COUNT(*) OVER () AS TotalCount
 -- create a window over the whole table
 FROM
-    PatientStay ps
+	PatientStay ps
 ORDER BY
 	ps.PatientId;
 
@@ -69,7 +69,7 @@ For each row,we create a window based on the rows with the same value of the PAR
 We can PARTITION BY more than one column
 */
 SELECT
-    ps.PatientId
+	ps.PatientId
 	, ps.Hospital
 	, ps.Ward
 	, ps.AdmittedDate
@@ -79,7 +79,7 @@ SELECT
 	, COUNT(*) OVER (PARTITION BY ps.Ward) AS WardCount
 	, COUNT(*) OVER (PARTITION BY ps.Hospital ,ps.Ward) AS HospitalWardCount
 FROM
-    PatientStay ps
+	PatientStay ps
 ORDER BY
 	ps.PatientId;
 
@@ -88,7 +88,7 @@ Use case: percentage of all rows in result set and percentage of a group
 */
 
 SELECT
-    ps.PatientId
+	ps.PatientId
 	, ps.Tariff
 	, ps.Ward
 	, SUM(ps.Tariff) OVER () AS TotalTariff
@@ -96,7 +96,7 @@ SELECT
 	, 100.0 * ps.Tariff / SUM(ps.Tariff) OVER () AS PctOfAllTariff
 	, 100.0 * ps.Tariff / SUM(ps.Tariff) OVER (PARTITION BY ps.Ward) AS PctOfWardTariff
 FROM
-    PatientStay ps
+	PatientStay ps
 ORDER BY
 	ps.Ward
 	,ps.PatientId;
@@ -110,7 +110,7 @@ ROW_NUMBER() is a special function used with Window functions to index rows in a
 It must have a ORDER BY since SQL must know  how to sort rows in each window
 */
 SELECT
-    ps.PatientId
+	ps.PatientId
 	, ps.Hospital
 	, ps.Ward
 	, ps.AdmittedDate
@@ -120,7 +120,7 @@ SELECT
     , COUNT(*) OVER (PARTITION BY ps.Hospital order by ps.PatientId)  as PatientByHospitalIndexAlt
 -- An alternative way of indexing
 FROM
-    PatientStay ps
+	PatientStay ps
 ORDER BY
 	--ps.Hospital
 	ps.PatientId;
@@ -134,20 +134,20 @@ NTILE(10) splits into deciles
 */
 
 SELECT
-    ps.PatientId
+	ps.PatientId
 	, ps.Tariff
 	, ROW_NUMBER() OVER (ORDER BY ps.Tariff DESC) AS PatientRowIndex
 	, RANK() OVER (	ORDER BY ps.Tariff DESC) AS PatientRank
 	, DENSE_RANK() OVER (ORDER BY ps.Tariff DESC) AS PatientDenseRank
 	, NTILE(10) OVER (ORDER BY ps.Tariff DESC) AS PatientIdDecile
 FROM
-    PatientStay ps
+	PatientStay ps
 ORDER BY
 	ps.Tariff DESC;
 
 -- Use Window functions to calculate a cumulative value ,or running total
 SELECT
-    ps.AdmittedDate
+	ps.AdmittedDate
 	, ps.Tariff
     , DATENAME(MONTH,ps.AdmittedDate) as MonthName
  , ROW_NUMBER() OVER (ORDER BY ps.AdmittedDate) AS RowIndex
@@ -155,10 +155,10 @@ SELECT
  , ROW_NUMBER() OVER (PARTITION BY DATENAME(MONTH,ps.AdmittedDate) ORDER BY ps.AdmittedDate) AS MonthIndex
  , SUM(ps.Tariff) OVER (PARTITION BY DATENAME(MONTH,ps.AdmittedDate) ORDER BY ps.AdmittedDate) AS MonthToDateTariff
 FROM
-    PatientStay ps
+	PatientStay ps
 WHERE
 	ps.Hospital = 'Oxleas'
-    AND ps.Ward = 'Dermatology'
+	AND ps.Ward = 'Dermatology'
 ORDER BY
 	ps.AdmittedDate;
 
@@ -171,27 +171,27 @@ ORDER BY
  */
 
 WITH
-    cte
-    AS
-    (
-        SELECT
-            ps.AdmittedDate
+	cte
+	AS
+	(
+		SELECT
+			ps.AdmittedDate
 	, DATENAME(MONTH,ps.AdmittedDate) AS MonthAdmitted
 	, ps.Tariff
-        FROM
-            PatientStay ps
-        WHERE
+		FROM
+			PatientStay ps
+		WHERE
 	ps.Hospital = 'Oxleas'
-            AND ps.Ward = 'Dermatology'
-    )
+			AND ps.Ward = 'Dermatology'
+	)
 SELECT
-    cte.MonthAdmitted
+	cte.MonthAdmitted
 	, cte.AdmittedDate
 	, cte.Tariff
 	, ROW_NUMBER() OVER (PARTITION BY cte.MonthAdmitted ORDER BY cte.AdmittedDate) AS RowIndex
 	, SUM(cte.Tariff) OVER (PARTITION BY cte.MonthAdmitted ORDER BY cte.AdmittedDate) AS RunningTariff
 FROM
-    cte;
+	cte;
 
 /*
 Other special functions are LEAD() and LAG() 
@@ -199,16 +199,16 @@ LAG gets the value from the previous row in the window
 Use this for example to calculate the change of a balance or inventory level from  one day to the next
 */
 SELECT
-    ps.AdmittedDate
+	ps.AdmittedDate
 	, ps.Tariff
 	, LEAD(ps.Tariff) OVER (ORDER BY ps.AdmittedDate) AS NextDayTariff
 	, LAG(ps.Tariff) OVER (ORDER BY ps.AdmittedDate) AS PreviousDayTariff
 	, ps.Tariff - LAG(ps.Tariff) OVER (ORDER BY ps.AdmittedDate) AS ChangeOnPreviousDate
 FROM
-    PatientStay ps
+	PatientStay ps
 WHERE
 	ps.Hospital = 'Oxleas'
-    AND ps.Ward = 'Dermatology'
+	AND ps.Ward = 'Dermatology'
 ORDER BY ps.AdmittedDate;
 
 
@@ -217,27 +217,27 @@ Find the running total of the tariff by date for each hospital
 Firstly we must group by Hospital and Date in a CTE  
 */
 WITH
-    cte
-    AS
-    (
-        SELECT
-            ps.Hospital
+	cte
+	AS
+	(
+		SELECT
+			ps.Hospital
 	, ps.AdmittedDate
 	, SUM(ps.Tariff) AS TotalTariff
-        FROM
-            PatientStay ps
-        GROUP BY
+		FROM
+			PatientStay ps
+		GROUP BY
 	ps.Hospital
 	,ps.AdmittedDate
-    )
+	)
 SELECT
-    cte.Hospital
+	cte.Hospital
 	, cte.AdmittedDate
 	, cte.TotalTariff
 	, SUM(cte.TotalTariff) OVER (PARTITION BY cte.Hospital ORDER BY cte.AdmittedDate) AS RunningTariff
 	, ROW_NUMBER() OVER (PARTITION BY cte.Hospital ORDER BY cte.AdmittedDate) AS TariffIndex
 FROM
-    cte
+	cte
 ORDER BY
 	cte.Hospital
 	,cte.AdmittedDate;
@@ -250,24 +250,24 @@ The CTE is necessary here since we cannot put a Window function into a WHERE cla
 **/
 
 WITH
-    RankedPatient (PatientId, Hospital, Tariff, PatientRank)
-    AS
-    (
-        SELECT
-            PatientId
+	RankedPatient (PatientId, Hospital, Tariff, PatientRank)
+	AS
+	(
+		SELECT
+			PatientId
 	, Hospital
 	, Tariff
 	, ROW_NUMBER() OVER (PARTITION BY Hospital ORDER BY Tariff DESC,PatientId) AS PatientRank
-        FROM
-            PatientStay
-    )
+		FROM
+			PatientStay
+	)
 SELECT
-    rp.Hospital
+	rp.Hospital
 	, rp.PatientId
 	, rp.Tariff
 	, rp.PatientRank
 FROM
-    RankedPatient rp
+	RankedPatient rp
 WHERE
 	rp.PatientRank <= 2
 ORDER BY
@@ -281,28 +281,28 @@ The WHERE clause is simply to return a small dataset of 4 patients,
 each with a different admitted date,to make the example easier to understand.
 */
 WITH
-    cte
-    AS
-    (
-        SELECT
-            ps.AdmittedDate 
+	cte
+	AS
+	(
+		SELECT
+			ps.AdmittedDate 
 	, ps.Tariff
 	, LEAD(ps.Tariff) OVER (ORDER BY ps.AdmittedDate) AS NextDayTariff
 	, LAG(ps.Tariff) OVER (ORDER BY ps.AdmittedDate) AS PreviousDayTariff
-        FROM
-            PatientStay ps
-        WHERE
+		FROM
+			PatientStay ps
+		WHERE
 	ps.Hospital = 'Oxleas'
-            AND ps.Ward = 'Dermatology'
-    )
+			AND ps.Ward = 'Dermatology'
+	)
 SELECT
-    cte.AdmittedDate
+	cte.AdmittedDate
 	, cte.Tariff
 	, cte.NextDayTariff
 	, cte.PreviousDayTariff
 	, cte.Tariff - cte.PreviousDayTariff AS ChangeOnPreviousDate
 FROM
-    cte;
+	cte;
 
 
 
@@ -311,14 +311,16 @@ FROM
  */
 -- There is a more explicit way of writing a window specification using the RANGE or ROWS clause,for example
 SELECT
-    ps.AdmittedDate
+	ps.AdmittedDate
 	, ps.Tariff
 	, ROW_NUMBER() OVER (ORDER BY ps.AdmittedDate) AS RowIndex
 	, SUM(ps.Tariff) OVER (	ORDER BY ps.AdmittedDate RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningTariff
 FROM
-    PatientStay ps
+	PatientStay ps
 WHERE
 	ps.Hospital = 'Oxleas'
-    AND ps.Ward = 'Dermatology'
+	AND ps.Ward = 'Dermatology'
 ORDER BY
 	ps.AdmittedDate;
+
+	
