@@ -9,7 +9,7 @@ Comments can also be across several lines
 SQL does not care about white space or capitalisation but you should!
 */
 -- simplest statement, bring back all data from a table
-SELECT 
+SELECT
 	*
 FROM
 	PatientStay;
@@ -22,6 +22,8 @@ SELECT
 	, Tariff
 	, Ward
 	, Hospital
+	, AdmittedDate
+	, DischargeDate
 FROM
 	PatientStay;
 
@@ -35,6 +37,7 @@ SELECT
 	, p.Ward
 	, p.Tariff
 	, p.Hospital
+	, p.AdmittedDate
 FROM
 	PatientStay p;
 
@@ -49,7 +52,8 @@ SELECT
 	, ps.Ward
 	, ps.Tariff
 FROM
-	PatientStay ps;
+	PatientStay ps
+WHERE ps.Hospital in ('Kingston', 'Oxleas');
 
 /*
 some alternative WHERE clauses.  Try these out
@@ -74,7 +78,7 @@ FROM
 	PatientStay ps
 WHERE
 	ps.Hospital IN ('Kingston', 'PRUH');
-	--WHERE ps.Hospital LIKE 'Kin%'
+--WHERE ps.Hospital LIKE 'Kin%'
 
 /*
 Sort: by the values of one or more columns with the ORDER BY clause
@@ -91,7 +95,7 @@ SELECT
 FROM
 	PatientStay ps
 ORDER BY
-	ps.Tariff;
+	ps.Tariff DESC;
 
 -- ORDER BY several columns
 SELECT
@@ -115,6 +119,7 @@ SELECT
 	, ps.AdmittedDate
 	-- See documentation for DATEADD at https://www.w3schools.com/sql/func_sqlserver_dateadd.asp
 	, DATEADD(WEEK, -2, ps.AdmittedDate) AS ReminderDate
+	, DATEDIFF(DAY, ps.AdmittedDate, ps.DischargeDate) as 'DaysInHospital'
 	, ps.Hospital
 	, ps.Ward
 	, ps.Tariff
@@ -131,7 +136,7 @@ Aggregate is to get a single result from a set of numbers
 Aggregation functions include SUM() and COUNT(*) but also MIN(), MAX(), AVERAGE()..
 We can group by at whatever level of aggregation we need and calculate several aggregations
 */
-	
+
 -- Aggregate over the entire dataset
 SELECT
 	COUNT(*) AS NumberOfPatients
@@ -193,7 +198,7 @@ SELECT
 	*
 FROM
 	PatientStay ps
-JOIN DimHospital h ON
+	JOIN DimHospital h ON
 	ps.Hospital = h.Hospital;
 
 /*
@@ -203,9 +208,51 @@ JOIN DimHospital h ON
 SELECT
 	ps.PatientId
 	, ps.AdmittedDate
+	, ps.Hospital
 	, h.HospitalType
 	, h.HospitalSize
 FROM
 	PatientStay ps
-JOIN DimHospital h ON
-	ps.Hospital = h.Hospital;
+	JOIN DimHospital h ON
+	ps.Hospital = h.Hospital
+order by Hospital;
+
+SELECT
+	ps.PatientId
+	, ps.AdmittedDate
+	, ps.Hospital
+	, h.Hospital
+	, h.HospitalType
+	, h.HospitalSize
+FROM
+	PatientStay ps
+	LEFT JOIN DimHospitalBad h ON
+	ps.Hospital = h.Hospital
+order by ps.Hospital DESC;
+
+--FULL OUTER JOIN
+SELECT
+	ps.PatientId
+	, ps.AdmittedDate
+	, ps.Hospital
+	, h.Hospital
+	, h.HospitalType
+	, h.HospitalSize
+FROM
+	PatientStay ps
+	FULL OUTER JOIN DimHospitalBad h ON
+	ps.Hospital = h.Hospital
+order by ps.Hospital DESC;
+
+--CROSS JOIN 
+SELECT *
+FROM DimHospital
+
+SELECT *
+FROM Address
+
+SELECT *
+FROM DimHospital CROSS JOIN Address
+
+
+
